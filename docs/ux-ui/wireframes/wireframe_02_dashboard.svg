@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="1280" height="800" fill="#FFFFFF" stroke="#BBBBBB" stroke-width="2"/>
+
+  <!-- title bar -->
+  <rect x="0" y="0" width="1280" height="40" fill="#EDEDED" stroke="#CCCCCC"/>
+  <circle cx="20" cy="20" r="6" fill="#CCCCCC"/>
+  <circle cx="42" cy="20" r="6" fill="#CCCCCC"/>
+  <circle cx="64" cy="20" r="6" fill="#CCCCCC"/>
+  <text x="640.0" y="25" font-size="13" fill="#666666" text-anchor="middle">Z-CashFlow — Dashboard</text>
+
+  <!-- sidebar -->
+  <rect x="0" y="40" width="220" height="760" fill="#FAFAFA" stroke="#DDDDDD"/>
+  <rect x="24" y="56" width="140" height="20" fill="#999999"/>
+  
+        <rect x="0" y="96" width="220" height="48" fill="#D9D9D9"/>
+        <rect x="24" y="112" width="16" height="16" fill="#AAAAAA"/>
+        <rect x="52" y="114" width="120" height="12" fill="#666666"/>
+        
+        <rect x="0" y="152" width="220" height="48" fill="none"/>
+        <rect x="24" y="168" width="16" height="16" fill="#AAAAAA"/>
+        <rect x="52" y="170" width="120" height="12" fill="#AAAAAA"/>
+        
+        <rect x="0" y="208" width="220" height="48" fill="none"/>
+        <rect x="24" y="224" width="16" height="16" fill="#AAAAAA"/>
+        <rect x="52" y="226" width="120" height="12" fill="#AAAAAA"/>
+        
+        <rect x="0" y="264" width="220" height="48" fill="none"/>
+        <rect x="24" y="280" width="16" height="16" fill="#AAAAAA"/>
+        <rect x="52" y="282" width="120" height="12" fill="#AAAAAA"/>
+        
+        <rect x="0" y="320" width="220" height="48" fill="none"/>
+        <rect x="24" y="336" width="16" height="16" fill="#AAAAAA"/>
+        <rect x="52" y="338" width="120" height="12" fill="#AAAAAA"/>
+        
+
+  <!-- topbar -->
+  <rect x="220" y="40" width="1060" height="56" fill="#FFFFFF" stroke="#EEEEEE"/>
+  <circle cx="1224" cy="68" r="18" fill="#DDDDDD"/>
+  <rect x="1120" y="60" width="80" height="14" fill="#BBBBBB"/>
+
+  <!-- content -->
+  <g transform="translate(220,96)">
+    
+  <text x="0" y="30" font-size="20" fill="#444444">Ola, Gabriel</text>
+  <text x="0" y="52" font-size="12" fill="#999999">Resumo do mes atual</text>
+  <rect x="800" y="6" width="200" height="40" fill="#D9D9D9" stroke="#999999" stroke-width="1.5"/>
+    <text x="900.0" y="31.0" font-size="12" fill="#555555" text-anchor="middle">+ Nova movimentacao</text>
+
+  <rect x="0" y="76" width="320" height="120" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="1.5" />
+  <text x="20" y="106" font-size="12" fill="#999999">SALDO ATUAL</text>
+  <rect x="20" y="120" width="180" height="26" fill="#BBBBBB"/>
+  <text x="20" y="176" font-size="11" fill="#AAAAAA">atualizado agora [RF004]</text>
+
+  <rect x="340" y="76" width="300" height="120" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="1.5" />
+  <text x="360" y="106" font-size="12" fill="#999999">ENTRADAS (mes)</text>
+  <rect x="360" y="120" width="140" height="22" fill="#CCCCCC"/>
+
+  <rect x="660" y="76" width="300" height="120" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="1.5" />
+  <text x="680" y="106" font-size="12" fill="#999999">SAIDAS (mes)</text>
+  <rect x="680" y="120" width="140" height="22" fill="#CCCCCC"/>
+
+  <rect x="0" y="220" width="620" height="280" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="1.5" />
+  <text x="20" y="250" font-size="13" fill="#777777">Entradas x Saidas (grafico)</text>
+  <polyline points="40,470 140,420 240,440 340,380 440,400 500,340" fill="none" stroke="#AAAAAA" stroke-width="3"/>
+  <line x1="20" y1="480" x2="600" y2="480" stroke="#DDDDDD" stroke-width="1.5"/>
+
+  <rect x="640" y="220" width="320" height="280" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="1.5" /><text x="650" y="242" font-size="12" fill="#999999">Categorias (pizza)</text>
+  <circle cx="800" cy="360" r="90" fill="none" stroke="#CCCCCC" stroke-width="24"/>
+
+  <rect x="0" y="520" width="960" height="220" fill="#FFFFFF" stroke="#CCCCCC" stroke-width="1.5" />
+  <text x="20" y="550" font-size="13" fill="#777777">Ultimas movimentacoes [RF003]</text>
+  <rect x="20" y="570" width="900" height="14" fill="#CCCCCC"/>
+  <rect x="20" y="596" width="900" height="14" fill="#CCCCCC"/>
+  <rect x="20" y="622" width="900" height="14" fill="#CCCCCC"/>
+  <rect x="20" y="648" width="900" height="14" fill="#CCCCCC"/>
+  <rect x="760" y="550" width="160" height="30" fill="#FFFFFF" stroke="#999999" stroke-width="1.5"/>
+    <text x="840.0" y="570.0" font-size="12" fill="#555555" text-anchor="middle">Ver extrato completo</text>
+
+  </g>
+</svg>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="1280" height="800" fill="#FFFFFF" stroke="#BBBBBB" stroke-width="2"/>
+  <rect x="0" y="0" width="1280" height="40" fill="#EDEDED" stroke="#CCCCCC"/>
+  <circle cx="20" cy="20" r="6" fill="#CCCCCC"/><circle cx="42" cy="20" r="6" fill="#CCCCCC"/><circle cx="64" cy="20" r="6" fill="#CCCCCC"/>
+  <text x="640.0" y="25" font-size="13" fill="#666666" text-anchor="middle">Z-CashFlow — Login</text>
+
+  <rect x="0" y="40" width="576.0" height="760" fill="#F2F2F2"/>
+  <rect x="228.0" y="360.0" width="120" height="120" fill="#DDDDDD"/>
+  <text x="288.0" y="510.0" font-size="16" fill="#999999" text-anchor="middle">Z-CashFlow</text>
+  <text x="288.0" y="534.0" font-size="11" fill="#AAAAAA" text-anchor="middle">controle financeiro pessoal</text>
+
+  <g transform="translate(696.0,240.0)">
+    <text x="0" y="0" font-size="22" fill="#444444">Entrar</text>
+    <text x="0" y="50" font-size="11" fill="#888888">E-mail</text>
+    <rect x="0" y="58" width="380" height="32" fill="#FFFFFF" stroke="#BBBBBB" stroke-width="1.5"/>
+    <text x="0" y="120" font-size="11" fill="#888888">Senha</text>
+    <rect x="0" y="128" width="380" height="32" fill="#FFFFFF" stroke="#BBBBBB" stroke-width="1.5"/>
+    <text x="0" y="190" font-size="11" fill="#999999" text-decoration="underline">Esqueci minha senha</text>
+    <rect x="0" y="210" width="380" height="44" fill="#D9D9D9" stroke="#999999" stroke-width="1.5"/>
+    <text x="190.0" y="237.0" font-size="12" fill="#555555" text-anchor="middle">ENTRAR</text>
+    <line x1="0" y1="284" x2="380" y2="284" stroke="#EEEEEE" stroke-width="1.5"/>
+    <text x="0" y="316" font-size="12" fill="#999999">Nao tem conta?</text>
+    <rect x="120" y="300" width="260" height="40" fill="#FFFFFF" stroke="#999999" stroke-width="1.5"/>
+    <text x="250.0" y="325.0" font-size="12" fill="#555555" text-anchor="middle">Criar conta</text>
+  </g>
+</svg>

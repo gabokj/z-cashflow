@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="1280" height="800" fill="#F4F6F9"/>
+
+  <!-- title bar -->
+  <rect x="0" y="0" width="1280" height="36" fill="#163A69"/>
+  <circle cx="18" cy="18" r="5" fill="#FFFFFF" opacity="0.5"/>
+  <circle cx="38" cy="18" r="5" fill="#FFFFFF" opacity="0.5"/>
+  <circle cx="58" cy="18" r="5" fill="#FFFFFF" opacity="0.5"/>
+  <text x="640.0" y="23" font-size="12" fill="#FFFFFF" text-anchor="middle" opacity="0.85">Z-CashFlow — Dashboard</text>
+
+  <!-- sidebar -->
+  <rect x="0" y="36" width="224" height="764" fill="#FFFFFF" stroke="#E1E5EA"/>
+  <text x="26" y="70" font-size="17" font-weight="700" fill="#1E4E8C">Z-CashFlow</text>
+  <line x1="0" y1="86" x2="224" y2="86" stroke="#E1E5EA"/>
+  <rect x="0" y="100" width="224" height="44" fill="#E8EFF9"/><rect x="0" y="100" width="4" height="44" fill="#1E4E8C"/>
+        <text x="26" y="127" font-size="15" fill="#1E4E8C">▣</text>
+        <text x="56" y="127" font-size="13" font-weight="600" fill="#1E4E8C" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">Dashboard</text>
+        
+        <text x="26" y="179" font-size="15" fill="#5B6472">↔</text>
+        <text x="56" y="179" font-size="13" font-weight="400" fill="#5B6472" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">Movimentacoes</text>
+        
+        <text x="26" y="231" font-size="15" fill="#5B6472">◉</text>
+        <text x="56" y="231" font-size="13" font-weight="400" fill="#5B6472" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">Categorias</text>
+        
+        <text x="26" y="283" font-size="15" fill="#5B6472">▲</text>
+        <text x="56" y="283" font-size="13" font-weight="400" fill="#5B6472" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">Relatorios</text>
+        
+        <text x="26" y="335" font-size="15" fill="#5B6472">⚙</text>
+        <text x="56" y="335" font-size="13" font-weight="400" fill="#5B6472" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">Configuracoes</text>
+        
+
+  <!-- topbar -->
+  <rect x="224" y="36" width="1056" height="56" fill="#FFFFFF" stroke="#E1E5EA"/>
+  <circle cx="1224" cy="64" r="18" fill="#E8EFF9" stroke="#1E4E8C"/>
+  <text x="1224" y="69" font-size="13" fill="#1E4E8C" text-anchor="middle" font-weight="600">GR</text>
+  <text x="1108" y="60" font-size="13" fill="#1A1F29" font-weight="600">Gabriel Ricca</text>
+  <text x="1108" y="76" font-size="11" fill="#5B6472">gabriel@zmail.com</text>
+
+  <g transform="translate(224,92)">
+    
+<text x="0" y="34" font-size="22" font-weight="700" fill="#1A1F29">Ola, Gabriel</text>
+<text x="0" y="56" font-size="13" fill="#5B6472">Resumo de Abril de 2026</text>
+<rect x="796" y="8" width="204" height="42" rx="7" fill="#1E4E8C" stroke="#1E4E8C"/>
+    <text x="898.0" y="34.0" font-size="13" font-weight="600" fill="#FFFFFF" text-anchor="middle" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">+ Nova movimentacao</text>
+
+<rect x="0" y="82" width="320" height="128" rx="10" fill="#FFFFFF" stroke="#E1E5EA"/>
+<text x="24" y="112" font-size="12" font-weight="600" fill="#5B6472">SALDO ATUAL</text>
+<text x="24" y="150" font-size="30" font-weight="700" fill="#1E4E8C">R$ 3.954,10</text>
+<text x="24" y="176" font-size="11" fill="#5B6472">Atualizado agora &#8226; RF004</text>
+
+<rect x="340" y="82" width="300" height="128" rx="10" fill="#FFFFFF" stroke="#E1E5EA"/>
+<text x="364" y="112" font-size="12" font-weight="600" fill="#5B6472">ENTRADAS (mes)</text>
+<text x="364" y="146" font-size="22" font-weight="700" fill="#167A4C">R$ 4.500,00</text>
+<rect x="364" y="158" width="147" height="24" rx="12" fill="#E7F5EE"/>
+    <text x="437.5" y="174" font-size="12" font-weight="700" fill="#167A4C" text-anchor="middle">+ 12% vs mes anterior</text>
+
+<rect x="660" y="82" width="300" height="128" rx="10" fill="#FFFFFF" stroke="#E1E5EA"/>
+<text x="684" y="112" font-size="12" font-weight="600" fill="#5B6472">SAIDAS (mes)</text>
+<text x="684" y="146" font-size="22" font-weight="700" fill="#C1272D">R$ 545,90</text>
+<rect x="684" y="158" width="140" height="24" rx="12" fill="#FBEAEA"/>
+    <text x="754.0" y="174" font-size="12" font-weight="700" fill="#C1272D" text-anchor="middle">- 5% vs mes anterior</text>
+
+<rect x="0" y="228" width="620" height="270" rx="10" fill="#FFFFFF" stroke="#E1E5EA"/>
+<text x="24" y="256" font-size="13" font-weight="600" fill="#1A1F29">Entradas x Saidas</text>
+<polyline points="40,470 140,420 240,440 340,380 440,400 560,320" fill="none" stroke="#1E4E8C" stroke-width="3"/>
+<polyline points="40,480 140,470 240,468 340,472 440,466 560,470" fill="none" stroke="#C1272D" stroke-width="3"/>
+<line x1="24" y1="480" x2="596" y2="480" stroke="#E1E5EA" stroke-width="1.5"/>
+<circle cx="480" cy="300" r="5" fill="#1E4E8C"/><text x="492" y="304" font-size="11" fill="#5B6472">Entradas</text>
+<circle cx="480" cy="320" r="5" fill="#C1272D"/><text x="492" y="324" font-size="11" fill="#5B6472">Saidas</text>
+
+<rect x="640" y="228" width="320" height="270" rx="10" fill="#FFFFFF" stroke="#E1E5EA"/>
+<text x="664" y="256" font-size="13" font-weight="600" fill="#1A1F29">Categorias (saidas)</text>
+<circle cx="800" cy="380" r="80" fill="none" stroke="#1E4E8C" stroke-width="22" stroke-dasharray="140 360" transform="rotate(-90 800 380)"/>
+<circle cx="800" cy="380" r="80" fill="none" stroke="#167A4C" stroke-width="22" stroke-dasharray="90 360" stroke-dashoffset="-140" transform="rotate(-90 800 380)"/>
+<circle cx="800" cy="380" r="80" fill="none" stroke="#C1272D" stroke-width="22" stroke-dasharray="60 360" stroke-dashoffset="-230" transform="rotate(-90 800 380)"/>
+<circle cx="800" cy="380" r="80" fill="none" stroke="#D9B23C" stroke-width="22" stroke-dasharray="70 360" stroke-dashoffset="-290" transform="rotate(-90 800 380)"/>
+
+<rect x="0" y="516" width="960" height="224" rx="10" fill="#FFFFFF" stroke="#E1E5EA"/>
+<text x="24" y="544" font-size="13" font-weight="600" fill="#1A1F29">Ultimas movimentacoes</text>
+<rect x="800" y="522" width="136" height="30" rx="7" fill="#FFFFFF" stroke="#E1E5EA"/>
+    <text x="868.0" y="542.0" font-size="13" font-weight="600" fill="#1A1F29" text-anchor="middle" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">Ver extrato</text>
+
+<line x1="24" y1="566" x2="936" y2="566" stroke="#E1E5EA"/>
+<text x="24" y="562" font-size="11" fill="#5B6472">DATA</text>
+<text x="140" y="562" font-size="11" fill="#5B6472">CATEGORIA</text>
+<text x="380" y="562" font-size="11" fill="#5B6472">DESCRICAO</text>
+
+<text x="24" y="596" font-size="13" fill="#1A1F29">01/04/2026</text>
+<text x="140" y="596" font-size="13" fill="#1A1F29">Salario</text>
+<text x="380" y="596" font-size="13" fill="#1A1F29">Salario Mensal - Estagio AI</text>
+<text x="912" y="596" font-size="13" font-weight="700" fill="#167A4C" text-anchor="end">+ R$ 3.500,00</text>
+<line x1="24" y1="612" x2="936" y2="612" stroke="#E1E5EA"/>
+
+<text x="24" y="636" font-size="13" fill="#1A1F29">05/04/2026</text>
+<text x="140" y="636" font-size="13" fill="#1A1F29">Alimentacao</text>
+<text x="380" y="636" font-size="13" fill="#1A1F29">Almoco Executivo</text>
+<text x="912" y="636" font-size="13" font-weight="700" fill="#C1272D" text-anchor="end">- R$ 160,00</text>
+<line x1="24" y1="652" x2="936" y2="652" stroke="#E1E5EA"/>
+
+<text x="24" y="676" font-size="13" fill="#1A1F29">10/04/2026</text>
+<text x="140" y="676" font-size="13" fill="#1A1F29">Investimentos</text>
+<text x="380" y="676" font-size="13" fill="#1A1F29">Rendimento FIIs</text>
+<text x="912" y="676" font-size="13" font-weight="700" fill="#167A4C" text-anchor="end">+ R$ 500,00</text>
+
+  </g>
+</svg>

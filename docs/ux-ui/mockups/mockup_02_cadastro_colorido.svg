@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="1280" height="800" fill="#F4F6F9"/>
+
+  <!-- title bar -->
+  <rect x="0" y="0" width="1280" height="36" fill="#163A69"/>
+  <circle cx="18" cy="18" r="5" fill="#FFFFFF" opacity="0.5"/>
+  <circle cx="38" cy="18" r="5" fill="#FFFFFF" opacity="0.5"/>
+  <circle cx="58" cy="18" r="5" fill="#FFFFFF" opacity="0.5"/>
+  <text x="640.0" y="23" font-size="12" fill="#FFFFFF" text-anchor="middle" opacity="0.85">Z-CashFlow — Nova movimentacao</text>
+
+  <!-- sidebar -->
+  <rect x="0" y="36" width="224" height="764" fill="#FFFFFF" stroke="#E1E5EA"/>
+  <text x="26" y="70" font-size="17" font-weight="700" fill="#1E4E8C">Z-CashFlow</text>
+  <line x1="0" y1="86" x2="224" y2="86" stroke="#E1E5EA"/>
+  
+        <text x="26" y="127" font-size="15" fill="#5B6472">▣</text>
+        <text x="56" y="127" font-size="13" font-weight="400" fill="#5B6472" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">Dashboard</text>
+        <rect x="0" y="152" width="224" height="44" fill="#E8EFF9"/><rect x="0" y="152" width="4" height="44" fill="#1E4E8C"/>
+        <text x="26" y="179" font-size="15" fill="#1E4E8C">↔</text>
+        <text x="56" y="179" font-size="13" font-weight="600" fill="#1E4E8C" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">Movimentacoes</text>
+        
+        <text x="26" y="231" font-size="15" fill="#5B6472">◉</text>
+        <text x="56" y="231" font-size="13" font-weight="400" fill="#5B6472" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">Categorias</text>
+        
+        <text x="26" y="283" font-size="15" fill="#5B6472">▲</text>
+        <text x="56" y="283" font-size="13" font-weight="400" fill="#5B6472" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">Relatorios</text>
+        
+        <text x="26" y="335" font-size="15" fill="#5B6472">⚙</text>
+        <text x="56" y="335" font-size="13" font-weight="400" fill="#5B6472" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">Configuracoes</text>
+        
+
+  <!-- topbar -->
+  <rect x="224" y="36" width="1056" height="56" fill="#FFFFFF" stroke="#E1E5EA"/>
+  <circle cx="1224" cy="64" r="18" fill="#E8EFF9" stroke="#1E4E8C"/>
+  <text x="1224" y="69" font-size="13" fill="#1E4E8C" text-anchor="middle" font-weight="600">GR</text>
+  <text x="1108" y="60" font-size="13" fill="#1A1F29" font-weight="600">Gabriel Ricca</text>
+  <text x="1108" y="76" font-size="11" fill="#5B6472">gabriel@zmail.com</text>
+
+  <g transform="translate(224,92)">
+    
+<text x="0" y="34" font-size="22" font-weight="700" fill="#1A1F29">Nova movimentacao</text>
+<text x="0" y="56" font-size="13" fill="#5B6472">RF001 &#8226; cadastro de entradas e saidas</text>
+
+<rect x="0" y="84" width="660" height="500" rx="10" fill="#FFFFFF" stroke="#E1E5EA"/>
+<g transform="translate(32,116)">
+  <text x="0" y="0" font-size="12" font-weight="600" fill="#5B6472">TIPO DE MOVIMENTACAO</text>
+
+  <rect x="0" y="10" width="180" height="46" rx="8" fill="#E7F5EE" stroke="#167A4C" stroke-width="2"/>
+  <circle cx="26" cy="33" r="8" fill="#167A4C"/>
+  <text x="46" y="38" font-size="13" font-weight="700" fill="#167A4C">Entrada</text>
+
+  <rect x="196" y="10" width="180" height="46" rx="8" fill="#FFFFFF" stroke="#E1E5EA" stroke-width="1.5"/>
+  <circle cx="222" cy="33" r="8" fill="none" stroke="#A7AEB8" stroke-width="2"/>
+  <text x="242" y="38" font-size="13" fill="#5B6472">Saida</text>
+
+  <text x="0" y="90" font-size="12" fill="#5B6472" font-weight="600">VALOR (R$)</text>
+    <rect x="0" y="98" width="340" height="38" rx="7" fill="#FFFFFF" stroke="#E1E5EA" stroke-width="1.5"/>
+    <text x="14" y="120" font-size="13" fill="#A7AEB8">0,00</text>
+  <text x="360" y="90" font-size="12" fill="#5B6472" font-weight="600">DATA</text>
+    <rect x="360" y="98" width="260" height="38" rx="7" fill="#FFFFFF" stroke="#E1E5EA" stroke-width="1.5"/>
+    <text x="374" y="120" font-size="13" fill="#1A1F29">28/09/2026</text>
+
+  <text x="0" y="168" font-size="12" fill="#5B6472" font-weight="600">CATEGORIA</text>
+    <rect x="0" y="176" width="620" height="38" rx="7" fill="#FFFFFF" stroke="#E1E5EA" stroke-width="1.5"/>
+    <text x="14" y="198" font-size="13" fill="#1A1F29">Salario</text>
+  <text x="0" y="246" font-size="12" fill="#5B6472" font-weight="600">DESCRICAO</text>
+    <rect x="0" y="254" width="620" height="38" rx="7" fill="#FFFFFF" stroke="#E1E5EA" stroke-width="1.5"/>
+    <text x="14" y="276" font-size="13" fill="#A7AEB8">Ex: Salario mensal - Estagio AI</text>
+
+  <rect x="0" y="340" width="160" height="46" rx="7" fill="#1E4E8C" stroke="#1E4E8C"/>
+    <text x="80.0" y="368.0" font-size="13" font-weight="600" fill="#FFFFFF" text-anchor="middle" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">Salvar</text>
+  <rect x="180" y="340" width="140" height="46" rx="7" fill="#FFFFFF" stroke="#E1E5EA"/>
+    <text x="250.0" y="368.0" font-size="13" font-weight="600" fill="#1A1F29" text-anchor="middle" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif">Cancelar</text>
+
+  <rect x="0" y="410" width="620" height="1" fill="#E1E5EA"/>
+  <text x="0" y="436" font-size="11" fill="#5B6472">Saldo apos esta movimentacao:</text>
+  <text x="260" y="436" font-size="13" font-weight="700" fill="#167A4C">R$ 4.454,10 (RF004 &#8226; recalculo automatico)</text>
+</g>
+
+<rect x="692" y="84" width="268" height="500" rx="10" fill="#FFFFFF" stroke="#E1E5EA"/>
+<text x="716" y="116" font-size="13" font-weight="600" fill="#1A1F29">Boas praticas</text>
+<text x="716" y="150" font-size="12" fill="#5B6472">Categoria e tipo devem</text>
+<text x="716" y="168" font-size="12" fill="#5B6472">ser compativeis (RF002).</text>
+<text x="716" y="200" font-size="12" fill="#5B6472">Datas exibidas sempre</text>
+<text x="716" y="218" font-size="12" fill="#5B6472">no formato dd/mm/aaaa.</text>
+<text x="716" y="250" font-size="12" fill="#5B6472">Erros de validacao usam</text>
+<text x="716" y="268" font-size="12" fill="#5B6472">cor + icone + texto (nao</text>
+<text x="716" y="286" font-size="12" fill="#5B6472">so a cor).</text>
+
+  </g>
+</svg>
