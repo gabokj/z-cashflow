@@ -1,0 +1,29 @@
+# --- NetBeans / Ant ---
+/build/
+/dist/
+/nbproject/private/
+# Gerados automaticamente pelo NetBeans ao abrir o projeto
+/nbproject/build-impl.xml
+/nbproject/genfiles.properties
+
+# --- Java ---
+*.class
+*.log
+hs_err_pid*
+
+# Driver JDBC: cada desenvolvedor baixa o seu (ver lib/LEIA-ME.txt)
+/lib/*.jar
+
+# --- Configuração local (pode conter senha do banco) ---
+# Copie zcashflow.properties.example para zcashflow.properties e ajuste, se necessário.
+/zcashflow.properties
+
+# --- Arquivos gerados pelo sistema ---
+extrato_zcashflow_*.csv
+
+# --- Sistema operacional / editores ---
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+.vscode/
