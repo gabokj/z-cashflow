@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- You may freely edit this file. See commented blocks below for
+more information on what is possible in the project.xml
+(please indicate the modification in the ANT script itself if you
+use it, listing which target overrides what scripts and captures
+the execution order)
+
+For a discussion of what you can do you can read the wiki page
+https://web.archive.org/web/20161217052654/http://wiki.netbeans.org/DevFaqCustomizingProjectByHandOrAntScript -->
+<project name="ZCashFlow" default="default" basedir=".">
+    <description>Builds, tests, and runs the project ZCashFlow.</description>
+    <import file="nbproject/build-impl.xml"/>
+</project>
