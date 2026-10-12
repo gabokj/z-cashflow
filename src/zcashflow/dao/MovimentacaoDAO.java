@@ -22,10 +22,7 @@ import java.util.List;
  */
 public class MovimentacaoDAO {
 
-    /**
-     * RF001 - Cadastro de Entradas e Saídas.
-     * Insere uma nova movimentação associada a um usuário e a uma categoria.
-     */
+    /** RF001 - Cadastro de Entradas e Saídas. */
     public void cadastrar(Movimentacao mov) throws SQLException {
         String sql = "INSERT INTO movimentacoes (id_usuario, id_categoria, valor, data_operacao, descricao) "
                 + "VALUES (?, ?, ?, ?, ?)";
@@ -40,10 +37,7 @@ public class MovimentacaoDAO {
         }
     }
 
-    /**
-     * RF003 - Extrato Automatizado.
-     * Lista todas as movimentações de um usuário, já com categoria carregada.
-     */
+    /** RF003 - Extrato Automatizado. */
     public List<Movimentacao> listarPorUsuario(int idUsuario) throws SQLException {
         List<Movimentacao> lista = new ArrayList<>();
         String sql = "SELECT m.id_movimentacao, m.valor, m.data_operacao, m.descricao, "
@@ -80,11 +74,7 @@ public class MovimentacaoDAO {
         return lista;
     }
 
-    /**
-     * RF004 - Cálculo de Saldo em Tempo Real.
-     * Recalcula o saldo (entradas - saídas) direto no banco de dados,
-     * toda vez que é chamado após uma nova movimentação confirmada.
-     */
+    /** RF004 - Cálculo de Saldo em Tempo Real. */
     public double calcularSaldo(int idUsuario) throws SQLException {
         String sql = "SELECT "
                 + "COALESCE(SUM(CASE WHEN c.tipo_fluxo = 'ENTRADA' THEN m.valor ELSE 0 END), 0) - "
