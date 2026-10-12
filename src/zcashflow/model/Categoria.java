@@ -1,13 +1,30 @@
 package zcashflow.model;
 
+import java.util.Objects;
+
 /**
- * Representa uma categoria de movimentação financeira.
- * Corresponde à tabela "categorias" do banco de dados.
+ * Categoria de movimentação (tabela "categorias"). O tipo de fluxo da categoria
+ * (ENTRADA ou SAIDA) define se o valor soma ou subtrai do saldo.
  */
 public class Categoria {
 
     public enum TipoFluxo {
-        ENTRADA, SAIDA
+        ENTRADA("Entrada"), SAIDA("Saída");
+
+        private final String rotulo;
+
+        TipoFluxo(String rotulo) {
+            this.rotulo = rotulo;
+        }
+
+        public String getRotulo() {
+            return rotulo;
+        }
+
+        @Override
+        public String toString() {
+            return rotulo;
+        }
     }
 
     private int idCategoria;
@@ -52,8 +69,27 @@ public class Categoria {
         this.tipoFluxo = tipoFluxo;
     }
 
+    /** Duas categorias são a mesma se tiverem o mesmo id (necessário para combos recarregados do banco). */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Categoria)) {
+            return false;
+        }
+        Categoria outra = (Categoria) o;
+        return idCategoria != 0 && idCategoria == outra.idCategoria;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(idCategoria);
+    }
+
+    /** Usado diretamente nas listas suspensas da interface. */
     @Override
     public String toString() {
-        return nomeCategoria + " (" + tipoFluxo + ")";
+        return nomeCategoria;
     }
 }

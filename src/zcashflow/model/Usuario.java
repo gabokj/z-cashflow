@@ -3,33 +3,41 @@ package zcashflow.model;
 import java.time.LocalDate;
 
 /**
- * Representa um usuário do sistema Z-CashFlow.
- * Corresponde à tabela "usuarios" do banco de dados.
+ * Usuário do sistema (tabela "usuarios"). A senha nunca é guardada em texto
+ * puro: o objeto carrega apenas o hash PBKDF2.
  */
 public class Usuario {
+
+    public enum Perfil {
+        USUARIO("Usuário"), ADMIN("Administrador");
+
+        private final String rotulo;
+
+        Perfil(String rotulo) {
+            this.rotulo = rotulo;
+        }
+
+        public String getRotulo() {
+            return rotulo;
+        }
+    }
 
     private int idUsuario;
     private String nome;
     private String email;
-    private String senha;
+    private String senhaHash;
+    private Perfil perfil = Perfil.USUARIO;
     private LocalDate dataCadastro;
 
     public Usuario() {
     }
 
-    public Usuario(String nome, String email, String senha) {
+    public Usuario(String nome, String email, String senhaHash, Perfil perfil) {
         this.nome = nome;
         this.email = email;
-        this.senha = senha;
+        this.senhaHash = senhaHash;
+        this.perfil = perfil;
         this.dataCadastro = LocalDate.now();
-    }
-
-    public Usuario(int idUsuario, String nome, String email, String senha, LocalDate dataCadastro) {
-        this.idUsuario = idUsuario;
-        this.nome = nome;
-        this.email = email;
-        this.senha = senha;
-        this.dataCadastro = dataCadastro;
     }
 
     public int getIdUsuario() {
@@ -56,12 +64,20 @@ public class Usuario {
         this.email = email;
     }
 
-    public String getSenha() {
-        return senha;
+    public String getSenhaHash() {
+        return senhaHash;
     }
 
-    public void setSenha(String senha) {
-        this.senha = senha;
+    public void setSenhaHash(String senhaHash) {
+        this.senhaHash = senhaHash;
+    }
+
+    public Perfil getPerfil() {
+        return perfil;
+    }
+
+    public void setPerfil(Perfil perfil) {
+        this.perfil = perfil;
     }
 
     public LocalDate getDataCadastro() {
@@ -72,8 +88,12 @@ public class Usuario {
         this.dataCadastro = dataCadastro;
     }
 
+    public boolean isAdmin() {
+        return perfil == Perfil.ADMIN;
+    }
+
     @Override
     public String toString() {
-        return "#" + idUsuario + " - " + nome + " (" + email + ")";
+        return nome + " (" + email + ")";
     }
 }

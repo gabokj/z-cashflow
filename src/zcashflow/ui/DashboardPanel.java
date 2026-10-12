@@ -1,42 +1,54 @@
 package zcashflow.ui;
 
-import zcashflow.model.Categoria.TipoFluxo;
 import zcashflow.model.Movimentacao;
+import zcashflow.model.ResumoMensal;
 import zcashflow.model.Usuario;
-import zcashflow.service.DadosService;
+import zcashflow.service.MovimentacaoService;
+import zcashflow.service.Sessao;
+import zcashflow.util.AppException;
+import zcashflow.util.Formatador;
 
-import javax.swing.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.math.BigDecimal;
+import java.time.YearMonth;
+import java.time.format.TextStyle;
 import java.util.List;
-import java.util.Locale;
 
 /**
- * Painel principal (Dashboard) — reproduz a Figura 2/7 do Projeto de
- * Interfaces: saldo atual (RF004), entradas/saídas do mês e últimas
- * movimentações (RF003).
+ * Dashboard: saldo atual (RF004), entradas/saídas do mês, gráfico dos últimos
+ * seis meses e últimas movimentações (RF003) — Figuras 2 e 7 da Etapa 2.
  */
-public class DashboardPanel extends JPanel {
+public class DashboardPanel extends PainelRolavel {
 
-    private static final DateTimeFormatter FORMATO_BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final long serialVersionUID = 1L;
+    private static final int MESES_GRAFICO = 6;
+    private static final int ULTIMAS_MOVIMENTACOES = 6;
 
     private final MainFrame principal;
-    private final DadosService dados = DadosService.getInstance();
+    private final MovimentacaoService movimentacaoService = new MovimentacaoService();
 
     private final JLabel labelSaudacao = new JLabel();
+    private final JLabel labelPeriodo = Componentes.subtitulo(" ");
     private final JLabel labelSaldo = new JLabel();
     private final JLabel labelEntradas = new JLabel();
     private final JLabel labelSaidas = new JLabel();
-    private final DefaultTableModel modeloTabela = new DefaultTableModel(
-            new Object[]{"Data", "Categoria", "Descrição", "Valor"}, 0) {
-        @Override
-        public boolean isCellEditable(int row, int column) {
-            return false;
-        }
-    };
+    private final GraficoBarras grafico = new GraficoBarras();
+    private final DefaultTableModel modeloTabela =
+            Componentes.modeloSomenteLeitura("Data", "Categoria", "Descrição", "Valor");
 
     public DashboardPanel(MainFrame principal) {
         this.principal = principal;
@@ -47,6 +59,7 @@ public class DashboardPanel extends JPanel {
     }
 
     private void montar() {
+        // Cabeçalho
         JPanel cabecalho = new JPanel(new BorderLayout());
         cabecalho.setOpaque(false);
         JPanel textos = new JPanel();
@@ -54,59 +67,70 @@ public class DashboardPanel extends JPanel {
         textos.setLayout(new BoxLayout(textos, BoxLayout.Y_AXIS));
         labelSaudacao.setFont(UIConstants.FONT_H1);
         labelSaudacao.setForeground(UIConstants.TEXT);
-        JLabel subtitulo = Componentes.subtitulo("Resumo do mês atual");
         textos.add(labelSaudacao);
-        textos.add(subtitulo);
+        textos.add(labelPeriodo);
         cabecalho.add(textos, BorderLayout.WEST);
 
-        JButton botaoNovaMov = Componentes.botaoPrimario("+ Nova movimentação");
-        botaoNovaMov.addActionListener(e -> principal.navegarPara(MainFrame.CARD_CADASTRO));
+        JButton botaoNova = Componentes.botaoPrimario("+ Nova movimentação");
+        botaoNova.addActionListener(e -> principal.navegarPara(MainFrame.CARD_CADASTRO));
         JPanel wrapBotao = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         wrapBotao.setOpaque(false);
-        wrapBotao.add(botaoNovaMov);
+        wrapBotao.add(botaoNova);
         cabecalho.add(wrapBotao, BorderLayout.EAST);
 
+        // Cartões de resumo
         JPanel cartoes = new JPanel(new GridLayout(1, 3, 16, 0));
         cartoes.setOpaque(false);
-        cartoes.setBorder(new EmptyBorder(20, 0, 20, 0));
+        cartoes.setBorder(new EmptyBorder(20, 0, 16, 0));
         cartoes.add(criarCartaoResumo("SALDO ATUAL", labelSaldo, UIConstants.PRIMARY, "Atualizado agora"));
-        cartoes.add(criarCartaoResumo("ENTRADAS (mês)", labelEntradas, UIConstants.SUCCESS, null));
-        cartoes.add(criarCartaoResumo("SAÍDAS (mês)", labelSaidas, UIConstants.DANGER, null));
+        cartoes.add(criarCartaoResumo("ENTRADAS (mês)", labelEntradas, UIConstants.SUCCESS, "Total recebido no mês"));
+        cartoes.add(criarCartaoResumo("SAÍDAS (mês)", labelSaidas, UIConstants.DANGER, "Total gasto no mês"));
 
-        JPanel painelTabela = Componentes.cartao();
-        painelTabela.setLayout(new BorderLayout());
+        // Gráfico
+        JPanel cartaoGrafico = Componentes.cartao();
+        cartaoGrafico.setLayout(new BorderLayout(0, 8));
+        JLabel tituloGrafico = new JLabel("Entradas x Saídas — últimos " + MESES_GRAFICO + " meses");
+        tituloGrafico.setFont(UIConstants.FONT_H2);
+        tituloGrafico.setForeground(UIConstants.TEXT);
+        cartaoGrafico.add(tituloGrafico, BorderLayout.NORTH);
+        cartaoGrafico.add(grafico, BorderLayout.CENTER);
+
+        // Tabela de últimas movimentações
+        JPanel cartaoTabela = Componentes.cartao();
+        cartaoTabela.setLayout(new BorderLayout(0, 8));
         JPanel cabecalhoTabela = new JPanel(new BorderLayout());
         cabecalhoTabela.setOpaque(false);
         JLabel tituloTabela = new JLabel("Últimas movimentações");
         tituloTabela.setFont(UIConstants.FONT_H2);
         tituloTabela.setForeground(UIConstants.TEXT);
         cabecalhoTabela.add(tituloTabela, BorderLayout.WEST);
-
         JButton verExtrato = Componentes.botaoSecundario("Ver extrato completo");
         verExtrato.addActionListener(e -> principal.navegarPara(MainFrame.CARD_EXTRATO));
-        JPanel wrapExtrato = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        wrapExtrato.setOpaque(false);
-        wrapExtrato.add(verExtrato);
-        cabecalhoTabela.add(wrapExtrato, BorderLayout.EAST);
+        cabecalhoTabela.add(verExtrato, BorderLayout.EAST);
 
-        JTable tabela = new JTable(modeloTabela);
-        tabela.setRowHeight(28);
-        tabela.setFont(UIConstants.FONT_BODY);
-        tabela.getTableHeader().setFont(UIConstants.FONT_LABEL);
-        tabela.setShowGrid(false);
-        tabela.setIntercellSpacing(new Dimension(0, 0));
-        tabela.setFillsViewportHeight(true);
+        JTable tabela = Componentes.tabela(modeloTabela);
+        tabela.getColumnModel().getColumn(3).setCellRenderer(new ValorCellRenderer());
+        tabela.getColumnModel().getColumn(0).setPreferredWidth(90);
+        tabela.getColumnModel().getColumn(2).setPreferredWidth(300);
+        JScrollPane scroll = new JScrollPane(tabela);
+        scroll.setBorder(null);
+        scroll.setPreferredSize(new java.awt.Dimension(300, 30 * ULTIMAS_MOVIMENTACOES + 30));
+        cartaoTabela.add(cabecalhoTabela, BorderLayout.NORTH);
+        cartaoTabela.add(scroll, BorderLayout.CENTER);
 
-        painelTabela.add(cabecalhoTabela, BorderLayout.NORTH);
-        painelTabela.add(new JScrollPane(tabela), BorderLayout.CENTER);
-
-        JPanel centro = new JPanel(new BorderLayout());
-        centro.setOpaque(false);
-        centro.add(cartoes, BorderLayout.NORTH);
-        centro.add(painelTabela, BorderLayout.CENTER);
+        JPanel corpo = new JPanel();
+        corpo.setOpaque(false);
+        corpo.setLayout(new BoxLayout(corpo, BoxLayout.Y_AXIS));
+        cartoes.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cartaoGrafico.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cartaoTabela.setAlignmentX(Component.LEFT_ALIGNMENT);
+        corpo.add(cartoes);
+        corpo.add(cartaoGrafico);
+        corpo.add(Box.createVerticalStrut(16));
+        corpo.add(cartaoTabela);
 
         add(cabecalho, BorderLayout.NORTH);
-        add(centro, BorderLayout.CENTER);
+        add(corpo, BorderLayout.CENTER);
     }
 
     private JPanel criarCartaoResumo(String rotulo, JLabel labelValor, Color cor, String rodape) {
@@ -117,55 +141,49 @@ public class DashboardPanel extends JPanel {
         labelValor.setFont(new Font("Segoe UI", Font.BOLD, 24));
         labelValor.setForeground(cor);
         labelValor.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel lRodape = Componentes.subtitulo(rodape);
+        lRodape.setAlignmentX(Component.LEFT_ALIGNMENT);
         cartao.add(lRotulo);
         cartao.add(Box.createVerticalStrut(8));
         cartao.add(labelValor);
-        if (rodape != null) {
-            JLabel lRodape = Componentes.subtitulo(rodape + "  •  RF004");
-            lRodape.setAlignmentX(Component.LEFT_ALIGNMENT);
-            cartao.add(Box.createVerticalStrut(6));
-            cartao.add(lRodape);
-        }
+        cartao.add(Box.createVerticalStrut(6));
+        cartao.add(lRodape);
         return cartao;
     }
 
-    /** Recarrega os dados exibidos a partir do DadosService. */
+    /** Recarrega todos os dados exibidos a partir do banco. */
     public void atualizar() {
-        Usuario usuario = dados.getUsuarioLogado();
+        Usuario usuario = Sessao.getInstance().getUsuario();
         if (usuario == null) {
             return;
         }
-        labelSaudacao.setText("Olá, " + primeiroNome(usuario.getNome()));
+        labelSaudacao.setText("Olá, " + usuario.getNome().split(" ")[0]);
+        YearMonth atual = YearMonth.now();
+        String mes = atual.getMonth().getDisplayName(TextStyle.FULL, Formatador.PT_BR);
+        labelPeriodo.setText("Resumo de " + mes + " de " + atual.getYear());
 
-        double saldo = dados.calcularSaldo(usuario.getIdUsuario());
-        labelSaldo.setText(formatarMoeda(saldo));
+        try {
+            BigDecimal saldo = movimentacaoService.saldo();
+            List<ResumoMensal> resumo = movimentacaoService.resumoMensal(MESES_GRAFICO);
+            ResumoMensal mesAtual = resumo.get(resumo.size() - 1);
+            List<Movimentacao> recentes = movimentacaoService.recentes(ULTIMAS_MOVIMENTACOES);
 
-        LocalDate hoje = LocalDate.now();
-        double entradas = dados.totalPorTipoNoMes(usuario.getIdUsuario(), TipoFluxo.ENTRADA, hoje.getYear(), hoje.getMonthValue());
-        double saidas = dados.totalPorTipoNoMes(usuario.getIdUsuario(), TipoFluxo.SAIDA, hoje.getYear(), hoje.getMonthValue());
-        labelEntradas.setText(formatarMoeda(entradas));
-        labelSaidas.setText(formatarMoeda(saidas));
+            labelSaldo.setText(Formatador.moeda(saldo));
+            labelEntradas.setText(Formatador.moeda(mesAtual.entradas()));
+            labelSaidas.setText(Formatador.moeda(mesAtual.saidas()));
+            grafico.setDados(resumo);
 
-        modeloTabela.setRowCount(0);
-        List<Movimentacao> movs = dados.listarMovimentacoes(usuario.getIdUsuario());
-        int limite = Math.min(8, movs.size());
-        for (int i = 0; i < limite; i++) {
-            Movimentacao m = movs.get(i);
-            String sinal = m.getCategoria().getTipoFluxo() == TipoFluxo.ENTRADA ? "+ " : "- ";
-            modeloTabela.addRow(new Object[]{
-                    m.getDataOperacao().format(FORMATO_BR),
-                    m.getCategoria().getNomeCategoria(),
-                    m.getDescricao(),
-                    sinal + formatarMoeda(m.getValor())
-            });
+            modeloTabela.setRowCount(0);
+            for (Movimentacao m : recentes) {
+                modeloTabela.addRow(new Object[]{
+                        Formatador.data(m.getDataOperacao()),
+                        m.getCategoria().getNomeCategoria(),
+                        m.getDescricao(),
+                        (m.isEntrada() ? "+ " : "- ") + Formatador.moeda(m.getValor())
+                });
+            }
+        } catch (AppException e) {
+            Mensagens.erro(this, e.getMessage());
         }
-    }
-
-    private String primeiroNome(String nomeCompleto) {
-        return nomeCompleto.split(" ")[0];
-    }
-
-    private String formatarMoeda(double valor) {
-        return String.format(Locale.of("pt", "BR"), "R$ %,.2f", valor);
     }
 }

@@ -1,11 +1,22 @@
 package zcashflow.ui;
 
-import zcashflow.model.Usuario;
-import zcashflow.service.DadosService;
+import zcashflow.service.UsuarioService;
+import zcashflow.util.AppException;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 
 /**
@@ -13,10 +24,12 @@ import java.awt.event.ActionEvent;
  */
 public class LoginFrame extends JFrame {
 
+    private static final long serialVersionUID = 1L;
+
     private final JTextField campoEmail = Componentes.campoTexto();
     private final JPasswordField campoSenha = new JPasswordField();
     private final JLabel labelErro = new JLabel(" ");
-    private final DadosService dados = DadosService.getInstance();
+    private final UsuarioService usuarioService = new UsuarioService();
 
     public LoginFrame() {
         super("Z-CashFlow — Login");
@@ -30,7 +43,7 @@ public class LoginFrame extends JFrame {
     private void montarTela() {
         JPanel raiz = new JPanel(new GridLayout(1, 2));
 
-        // --- Lado esquerdo: marca ---
+        // Lado esquerdo: identidade visual
         JPanel ladoEsquerdo = new JPanel(new GridBagLayout());
         ladoEsquerdo.setBackground(UIConstants.BG);
         JPanel marca = new JPanel();
@@ -49,33 +62,29 @@ public class LoginFrame extends JFrame {
         marca.add(slogan);
         ladoEsquerdo.add(marca);
 
-        // --- Lado direito: formulário ---
+        // Lado direito: formulário
         JPanel ladoDireito = new JPanel(new GridBagLayout());
         ladoDireito.setBackground(Color.WHITE);
 
         JPanel form = new JPanel();
         form.setOpaque(false);
         form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
-        form.setBorder(new EmptyBorder(0, 0, 0, 0));
-        form.setMaximumSize(new Dimension(380, 420));
-        form.setPreferredSize(new Dimension(380, 300));
+        form.setPreferredSize(new Dimension(380, 390));
 
         JLabel titulo = Componentes.titulo("Entrar");
         titulo.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel rotuloEmail = Componentes.rotulo("E-MAIL");
+        JLabel rotuloEmail = Componentes.rotuloPara("E-MAIL", campoEmail);
         rotuloEmail.setAlignmentX(Component.LEFT_ALIGNMENT);
         campoEmail.setAlignmentX(Component.LEFT_ALIGNMENT);
         campoEmail.setMaximumSize(new Dimension(380, 38));
-        campoEmail.setText("gabriel@zmail.com");
 
-        JLabel rotuloSenha = Componentes.rotulo("SENHA");
+        JLabel rotuloSenha = Componentes.rotuloPara("SENHA", campoSenha);
         rotuloSenha.setAlignmentX(Component.LEFT_ALIGNMENT);
         campoSenha.setFont(UIConstants.FONT_BODY);
         campoSenha.setBorder(campoEmail.getBorder());
         campoSenha.setAlignmentX(Component.LEFT_ALIGNMENT);
         campoSenha.setMaximumSize(new Dimension(380, 38));
-        campoSenha.setText("olaprofessor");
 
         labelErro.setForeground(UIConstants.DANGER);
         labelErro.setFont(UIConstants.FONT_BODY);
@@ -86,11 +95,12 @@ public class LoginFrame extends JFrame {
         botaoEntrar.setMaximumSize(new Dimension(380, 42));
         botaoEntrar.addActionListener(this::tentarLogin);
 
-        JLabel dica = new JLabel("<html>Use <b>gabriel@zmail.com</b> / <b>olaprofessor</b> " +
-                "(dados de demonstração em memória)</html>");
-        dica.setFont(UIConstants.FONT_BODY);
-        dica.setForeground(UIConstants.TEXT_MUTED);
-        dica.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel semConta = Componentes.subtitulo("Ainda não tem conta?");
+        semConta.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JButton botaoCriarConta = Componentes.botaoSecundario("Criar conta");
+        botaoCriarConta.setAlignmentX(Component.LEFT_ALIGNMENT);
+        botaoCriarConta.setMaximumSize(new Dimension(380, 42));
+        botaoCriarConta.addActionListener(e -> abrirCadastro());
 
         form.add(titulo);
         form.add(Box.createVerticalStrut(24));
@@ -105,36 +115,44 @@ public class LoginFrame extends JFrame {
         form.add(labelErro);
         form.add(Box.createVerticalStrut(10));
         form.add(botaoEntrar);
-        form.add(Box.createVerticalStrut(20));
-        form.add(dica);
+        form.add(Box.createVerticalStrut(24));
+        form.add(semConta);
+        form.add(Box.createVerticalStrut(8));
+        form.add(botaoCriarConta);
 
-        getRootPane().setDefaultButton(botaoEntrar);
+        getRootPane().setDefaultButton(botaoEntrar); // Enter aciona o login
 
         ladoDireito.add(form);
-
         raiz.add(ladoEsquerdo);
         raiz.add(ladoDireito);
         setContentPane(raiz);
     }
 
     private void tentarLogin(ActionEvent e) {
-        String email = campoEmail.getText().trim();
-        String senha = new String(campoSenha.getPassword());
-
-        if (email.isEmpty() || senha.isEmpty()) {
-            labelErro.setText("Preencha e-mail e senha.");
+        try {
+            usuarioService.autenticar(campoEmail.getText(), new String(campoSenha.getPassword()));
+        } catch (AppException ex) {
+            campoSenha.setText("");
+            exibirErro(ex.getMessage());
             return;
         }
+        new MainFrame().setVisible(true);
+        dispose();
+    }
 
-        Usuario usuario = dados.autenticar(email, senha);
-        if (usuario == null) {
-            labelErro.setText("E-mail ou senha inválidos.");
-            return;
+    private void abrirCadastro() {
+        CadastroUsuarioDialog dialogo = new CadastroUsuarioDialog(this);
+        dialogo.setVisible(true);
+        String emailCriado = dialogo.getEmailCriado();
+        if (emailCriado != null) {
+            campoEmail.setText(emailCriado);
+            campoSenha.setText("");
+            labelErro.setText(" ");
+            campoSenha.requestFocusInWindow();
         }
+    }
 
-        labelErro.setText(" ");
-        MainFrame principal = new MainFrame();
-        principal.setVisible(true);
-        this.dispose();
+    private void exibirErro(String mensagem) {
+        labelErro.setText("<html><body style='width:340px'>" + mensagem + "</body></html>");
     }
 }

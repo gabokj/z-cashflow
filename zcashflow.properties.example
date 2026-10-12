@@ -1,0 +1,10 @@
+# ---------------------------------------------------------------------------
+# Z-CashFlow - configuracao de acesso ao banco de dados MySQL
+#
+# Este arquivo deve ficar na pasta do projeto (onde o programa e executado).
+# Se ele nao existir, o sistema usa os mesmos valores padrao abaixo, que sao
+# os criados pelo script Z-CashFlow.sql.
+# ---------------------------------------------------------------------------
+db.url=jdbc:mysql://localhost:3306/z_cashflow?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+db.user=zcashflow
+db.password=zcashflow123

@@ -2,36 +2,57 @@ package zcashflow.ui;
 
 import zcashflow.model.Categoria;
 import zcashflow.model.Categoria.TipoFluxo;
-import zcashflow.model.Usuario;
-import zcashflow.service.DadosService;
+import zcashflow.model.Movimentacao;
+import zcashflow.service.CategoriaService;
+import zcashflow.service.MovimentacaoService;
+import zcashflow.util.AppException;
+import zcashflow.util.Formatador;
 
-import javax.swing.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 
 /**
- * Tela de cadastro de movimentação (RF001), reproduzindo a Figura 3/8 do
- * Projeto de Interfaces: tipo (entrada/saída), valor, data, categoria e
- * descrição, com painel lateral de orientações.
+ * Formulário de movimentação (RF001/RF002): serve tanto para cadastrar uma
+ * nova entrada/saída quanto para editar uma existente (Figuras 3 e 8 da Etapa 2).
  */
-public class CadastroMovimentacaoPanel extends JPanel {
+public class CadastroMovimentacaoPanel extends PainelRolavel {
 
-    private static final DateTimeFormatter FORMATO_BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final long serialVersionUID = 1L;
 
     private final MainFrame principal;
-    private final DadosService dados = DadosService.getInstance();
+    private final CategoriaService categoriaService = new CategoriaService();
+    private final MovimentacaoService movimentacaoService = new MovimentacaoService();
 
+    private final JLabel labelTitulo = Componentes.titulo("Nova movimentação");
     private final JRadioButton radioEntrada = new JRadioButton("Entrada");
     private final JRadioButton radioSaida = new JRadioButton("Saída");
     private final JTextField campoValor = Componentes.campoTexto();
     private final JTextField campoData = Componentes.campoTexto();
     private final JComboBox<Categoria> comboCategoria = new JComboBox<>();
     private final JTextField campoDescricao = Componentes.campoTexto();
+    private final JButton botaoSalvar = Componentes.botaoPrimario("Salvar");
     private final JLabel labelMensagem = new JLabel(" ");
+
+    /** null = cadastrando uma nova movimentação; senão, editando esta. */
+    private Movimentacao emEdicao;
+    private boolean carregandoCombo;
 
     public CadastroMovimentacaoPanel(MainFrame principal) {
         this.principal = principal;
@@ -45,11 +66,10 @@ public class CadastroMovimentacaoPanel extends JPanel {
         JPanel cabecalho = new JPanel();
         cabecalho.setOpaque(false);
         cabecalho.setLayout(new BoxLayout(cabecalho, BoxLayout.Y_AXIS));
-        JLabel titulo = Componentes.titulo("Nova movimentação");
-        titulo.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel subtitulo = Componentes.subtitulo("RF001 — cadastro de entradas e saídas");
+        labelTitulo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel subtitulo = Componentes.subtitulo("Registre uma entrada (receita) ou uma saída (despesa)");
         subtitulo.setAlignmentX(Component.LEFT_ALIGNMENT);
-        cabecalho.add(titulo);
+        cabecalho.add(labelTitulo);
         cabecalho.add(subtitulo);
 
         JPanel corpo = new JPanel(new BorderLayout(20, 0));
@@ -66,16 +86,14 @@ public class CadastroMovimentacaoPanel extends JPanel {
         grupoTipo.add(radioEntrada);
         grupoTipo.add(radioSaida);
         radioEntrada.setSelected(true);
-        radioEntrada.setOpaque(false);
-        radioSaida.setOpaque(false);
-        radioEntrada.setFont(UIConstants.FONT_BODY_BOLD);
-        radioSaida.setFont(UIConstants.FONT_BODY_BOLD);
+        for (JRadioButton r : new JRadioButton[]{radioEntrada, radioSaida}) {
+            r.setOpaque(false);
+            r.setFont(UIConstants.FONT_BODY_BOLD);
+            r.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            r.addActionListener(e -> carregarCategorias(null));
+        }
         radioEntrada.setForeground(UIConstants.SUCCESS);
         radioSaida.setForeground(UIConstants.DANGER);
-        radioEntrada.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        radioSaida.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        radioEntrada.addActionListener(e -> atualizarCategoriasDisponiveis());
-        radioSaida.addActionListener(e -> atualizarCategoriasDisponiveis());
 
         JPanel painelTipo = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 0));
         painelTipo.setOpaque(false);
@@ -87,29 +105,25 @@ public class CadastroMovimentacaoPanel extends JPanel {
         JPanel linhaValorData = new JPanel(new GridLayout(1, 2, 16, 0));
         linhaValorData.setOpaque(false);
         linhaValorData.setAlignmentX(Component.LEFT_ALIGNMENT);
-        linhaValorData.setMaximumSize(new Dimension(640, 60));
-        linhaValorData.add(campoComRotulo("VALOR (R$)", campoValor));
-        campoData.setText(LocalDate.now().format(FORMATO_BR));
+        linhaValorData.setMaximumSize(new Dimension(Short.MAX_VALUE, 66));
+        linhaValorData.add(campoComRotulo("VALOR (R$) — ex.: 1250,50", campoValor));
         linhaValorData.add(campoComRotulo("DATA (dd/mm/aaaa)", campoData));
 
         comboCategoria.setFont(UIConstants.FONT_BODY);
 
-        JButton salvar = Componentes.botaoPrimario("Salvar");
-        salvar.addActionListener(e -> salvarMovimentacao());
+        botaoSalvar.addActionListener(e -> salvar());
         JButton cancelar = Componentes.botaoSecundario("Cancelar");
-        cancelar.addActionListener(e -> {
-            limparFormulario();
-            principal.navegarPara(MainFrame.CARD_DASHBOARD);
-        });
+        cancelar.addActionListener(e -> voltar());
 
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         botoes.setOpaque(false);
         botoes.setAlignmentX(Component.LEFT_ALIGNMENT);
         botoes.setMaximumSize(new Dimension(Short.MAX_VALUE, 50));
-        botoes.add(salvar);
+        botoes.add(botaoSalvar);
         botoes.add(cancelar);
 
         labelMensagem.setFont(UIConstants.FONT_BODY_BOLD);
+        labelMensagem.setForeground(UIConstants.DANGER);
         labelMensagem.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         formulario.add(rotuloTipo);
@@ -134,9 +148,10 @@ public class CadastroMovimentacaoPanel extends JPanel {
         dicas.add(tituloDicas);
         dicas.add(Box.createVerticalStrut(10));
         for (String texto : new String[]{
-                "A categoria escolhida deve ser compatível com o tipo selecionado (RF002).",
-                "Datas são sempre exibidas no formato brasileiro dd/mm/aaaa (RF003).",
-                "O saldo é recalculado automaticamente após salvar (RF004)."}) {
+                "A categoria precisa ser compatível com o tipo escolhido (entrada ou saída).",
+                "Informe sempre o valor positivo; o sistema aplica o sinal conforme o tipo.",
+                "Datas usam o formato brasileiro dd/mm/aaaa.",
+                "O saldo é recalculado automaticamente após salvar."}) {
             JLabel l = new JLabel("<html><body style='width: 200px'>• " + texto + "</body></html>");
             l.setFont(UIConstants.FONT_BODY);
             l.setForeground(UIConstants.TEXT_MUTED);
@@ -144,14 +159,12 @@ public class CadastroMovimentacaoPanel extends JPanel {
             l.setBorder(new EmptyBorder(0, 0, 10, 0));
             dicas.add(l);
         }
-
         JPanel wrapDicas = new JPanel(new BorderLayout());
         wrapDicas.setOpaque(false);
         wrapDicas.add(dicas, BorderLayout.NORTH);
 
         corpo.add(formulario, BorderLayout.CENTER);
         corpo.add(wrapDicas, BorderLayout.EAST);
-
         add(cabecalho, BorderLayout.NORTH);
         add(corpo, BorderLayout.CENTER);
     }
@@ -160,86 +173,94 @@ public class CadastroMovimentacaoPanel extends JPanel {
         JPanel p = new JPanel(new BorderLayout(0, 6));
         p.setOpaque(false);
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
-        p.add(Componentes.rotulo(rotulo), BorderLayout.NORTH);
+        p.add(Componentes.rotuloPara(rotulo, campo), BorderLayout.NORTH);
         p.add(campo, BorderLayout.CENTER);
-        // Evita que o BoxLayout (eixo Y) estique este campo verticalmente:
-        // BorderLayout reivindica altura máxima infinita por padrão.
-        int alturaCampo = campo.getPreferredSize().height;
-        p.setMaximumSize(new Dimension(Short.MAX_VALUE, 20 + 6 + Math.max(alturaCampo, 36)));
+        // BorderLayout reivindica altura máxima infinita; limitamos para o BoxLayout não esticar o campo.
+        p.setMaximumSize(new Dimension(Short.MAX_VALUE, 26 + Math.max(campo.getPreferredSize().height, 36)));
         return p;
     }
 
-    private void atualizarCategoriasDisponiveis() {
+    /** Recarrega as categorias do tipo selecionado; mantém {@code selecionada} se informada. */
+    private void carregarCategorias(Categoria selecionada) {
         TipoFluxo tipo = radioEntrada.isSelected() ? TipoFluxo.ENTRADA : TipoFluxo.SAIDA;
-        comboCategoria.removeAllItems();
-        List<Categoria> categorias = dados.listarCategoriasPorTipo(tipo);
-        for (Categoria c : categorias) {
-            comboCategoria.addItem(c);
-        }
-    }
-
-    private void salvarMovimentacao() {
-        Usuario usuario = dados.getUsuarioLogado();
-        if (usuario == null) {
-            return;
-        }
-
-        String valorTexto = campoValor.getText().trim().replace(",", ".");
-        double valor;
+        carregandoCombo = true;
         try {
-            valor = Double.parseDouble(valorTexto);
-            if (valor <= 0) {
-                throw new NumberFormatException();
+            comboCategoria.removeAllItems();
+            List<Categoria> categorias = categoriaService.listarPorTipo(tipo);
+            for (Categoria c : categorias) {
+                comboCategoria.addItem(c);
             }
-        } catch (NumberFormatException ex) {
-            exibirErro("Informe um valor numérico maior que zero.");
+            if (selecionada != null) {
+                comboCategoria.setSelectedItem(selecionada);
+            }
+        } catch (AppException e) {
+            Mensagens.erro(this, e.getMessage());
+        } finally {
+            carregandoCombo = false;
+        }
+    }
+
+    /** Abre o formulário vazio para uma nova movimentação. */
+    public void prepararNovo() {
+        emEdicao = null;
+        labelTitulo.setText("Nova movimentação");
+        botaoSalvar.setText("Salvar");
+        limparCampos();
+        carregarCategorias(null);
+        campoValor.requestFocusInWindow();
+    }
+
+    /** Abre o formulário preenchido com os dados da movimentação a editar. */
+    public void prepararEdicao(Movimentacao mov) {
+        emEdicao = mov;
+        labelTitulo.setText("Editar movimentação");
+        botaoSalvar.setText("Salvar alterações");
+        labelMensagem.setText(" ");
+        radioEntrada.setSelected(mov.isEntrada());
+        radioSaida.setSelected(!mov.isEntrada());
+        carregarCategorias(mov.getCategoria());
+        campoValor.setText(Formatador.valorEditavel(mov.getValor()));
+        campoData.setText(Formatador.data(mov.getDataOperacao()));
+        campoDescricao.setText(mov.getDescricao());
+    }
+
+    private void salvar() {
+        if (carregandoCombo) {
             return;
         }
-
-        LocalDate data;
         try {
-            data = LocalDate.parse(campoData.getText().trim(), FORMATO_BR);
-        } catch (DateTimeParseException ex) {
-            exibirErro("Data inválida. Use o formato dd/mm/aaaa.");
+            var valor = Formatador.lerValor(campoValor.getText());
+            LocalDate data = Formatador.lerData(campoData.getText());
+            Categoria categoria = (Categoria) comboCategoria.getSelectedItem();
+
+            if (emEdicao == null) {
+                movimentacaoService.registrar(categoria, valor, data, campoDescricao.getText());
+            } else {
+                movimentacaoService.atualizar(emEdicao.getIdMovimentacao(), categoria, valor, data,
+                        campoDescricao.getText());
+            }
+        } catch (AppException e) {
+            labelMensagem.setText("⚠ " + e.getMessage());
             return;
         }
-
-        Categoria categoria = (Categoria) comboCategoria.getSelectedItem();
-        if (categoria == null) {
-            exibirErro("Selecione uma categoria.");
-            return;
-        }
-
-        String descricao = campoDescricao.getText().trim();
-        if (descricao.isEmpty()) {
-            exibirErro("Informe uma descrição.");
-            return;
-        }
-
-        dados.registrarMovimentacao(usuario, categoria, valor, data, descricao);
-
-        labelMensagem.setForeground(UIConstants.SUCCESS);
-        labelMensagem.setText("✓ Movimentação cadastrada com sucesso!");
-        limparFormulario();
-        principal.navegarPara(MainFrame.CARD_DASHBOARD);
+        boolean editando = emEdicao != null;
+        limparCampos();
+        emEdicao = null;
+        principal.navegarPara(editando ? MainFrame.CARD_EXTRATO : MainFrame.CARD_DASHBOARD);
     }
 
-    private void exibirErro(String mensagem) {
-        labelMensagem.setForeground(UIConstants.DANGER);
-        labelMensagem.setText("⚠ " + mensagem);
+    private void voltar() {
+        boolean editando = emEdicao != null;
+        limparCampos();
+        emEdicao = null;
+        principal.navegarPara(editando ? MainFrame.CARD_EXTRATO : MainFrame.CARD_DASHBOARD);
     }
 
-    private void limparFormulario() {
+    private void limparCampos() {
+        labelMensagem.setText(" ");
         campoValor.setText("");
         campoDescricao.setText("");
-        campoData.setText(LocalDate.now().format(FORMATO_BR));
+        campoData.setText(Formatador.data(LocalDate.now()));
         radioEntrada.setSelected(true);
-        atualizarCategoriasDisponiveis();
-    }
-
-    /** Chamado sempre que a tela é exibida, para garantir categorias atualizadas. */
-    public void atualizar() {
-        labelMensagem.setText(" ");
-        atualizarCategoriasDisponiveis();
     }
 }

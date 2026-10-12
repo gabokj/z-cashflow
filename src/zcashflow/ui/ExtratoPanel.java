@@ -1,42 +1,67 @@
 package zcashflow.ui;
 
+import zcashflow.dao.FiltroMovimentacao;
 import zcashflow.model.Categoria;
 import zcashflow.model.Categoria.TipoFluxo;
 import zcashflow.model.Movimentacao;
-import zcashflow.model.Usuario;
-import zcashflow.service.DadosService;
+import zcashflow.service.CategoriaService;
+import zcashflow.service.MovimentacaoService;
+import zcashflow.util.AppException;
+import zcashflow.util.Formatador;
 
-import javax.swing.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.time.format.DateTimeFormatter;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
- * Tela de extrato (RF003), reproduzindo a Figura 4 do Projeto de
- * Interfaces: lista tabular com filtros por tipo e categoria, datas
- * sempre no formato brasileiro dd/mm/aaaa.
+ * Extrato (RF003): consulta com filtros por tipo, categoria e período, com
+ * edição, exclusão e exportação para CSV (Figura 4 da Etapa 2).
  */
-public class ExtratoPanel extends JPanel {
+public class ExtratoPanel extends PainelRolavel {
 
-    private static final DateTimeFormatter FORMATO_BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final long serialVersionUID = 1L;
 
     private final MainFrame principal;
-    private final DadosService dados = DadosService.getInstance();
+    private final CategoriaService categoriaService = new CategoriaService();
+    private final MovimentacaoService movimentacaoService = new MovimentacaoService();
 
-    private final JComboBox<String> comboTipo = new JComboBox<>(new String[]{"Todos", "Entrada", "Saída"});
+    private final JComboBox<Object> comboTipo = new JComboBox<>(new Object[]{"Todos", TipoFluxo.ENTRADA, TipoFluxo.SAIDA});
     private final JComboBox<Object> comboCategoria = new JComboBox<>();
-    private final DefaultTableModel modeloTabela = new DefaultTableModel(
-            new Object[]{"Data", "Categoria", "Descrição", "Valor"}, 0) {
-        @Override
-        public boolean isCellEditable(int row, int column) {
-            return false;
-        }
-    };
-    private final JLabel labelTotal = new JLabel();
-    private boolean atualizandoCombos = false;
+    private final javax.swing.JTextField campoDe = Componentes.campoTexto();
+    private final javax.swing.JTextField campoAte = Componentes.campoTexto();
+    private final DefaultTableModel modeloTabela =
+            Componentes.modeloSomenteLeitura("Data", "Tipo", "Categoria", "Descrição", "Valor");
+    private final JTable tabela = Componentes.tabela(modeloTabela);
+    private final JLabel labelTotal = new JLabel(" ");
+    private final JButton botaoEditar = Componentes.botaoSecundario("Editar");
+    private final JButton botaoExcluir = Componentes.botaoPerigo("Excluir");
+
+    /** Movimentações exibidas, na mesma ordem das linhas da tabela. */
+    private List<Movimentacao> listaAtual = new ArrayList<>();
+    private boolean atualizandoCombos;
 
     public ExtratoPanel(MainFrame principal) {
         this.principal = principal;
@@ -52,59 +77,88 @@ public class ExtratoPanel extends JPanel {
         cabecalho.setLayout(new BoxLayout(cabecalho, BoxLayout.Y_AXIS));
         JLabel titulo = Componentes.titulo("Extrato de movimentações");
         titulo.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel subtitulo = Componentes.subtitulo("RF003 — extrato automatizado (formato dd/mm/aaaa)");
+        JLabel subtitulo = Componentes.subtitulo("Consulte, filtre, edite e exporte seus lançamentos");
         subtitulo.setAlignmentX(Component.LEFT_ALIGNMENT);
         cabecalho.add(titulo);
         cabecalho.add(subtitulo);
 
+        // Filtros
         JPanel filtros = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         filtros.setOpaque(false);
-        filtros.setBorder(new EmptyBorder(18, 0, 10, 0));
+        filtros.setBorder(new EmptyBorder(16, 0, 10, 0));
         comboTipo.setFont(UIConstants.FONT_BODY);
         comboCategoria.setFont(UIConstants.FONT_BODY);
+        campoDe.setPreferredSize(new Dimension(110, 34));
+        campoAte.setPreferredSize(new Dimension(110, 34));
+
         comboTipo.addActionListener(e -> {
-            if (atualizandoCombos) {
-                return;
+            if (!atualizandoCombos) {
+                carregarCategorias();
+                aplicarFiltros();
             }
-            atualizarComboCategorias();
-            aplicarFiltros();
         });
         comboCategoria.addActionListener(e -> {
-            if (atualizandoCombos) {
-                return;
+            if (!atualizandoCombos) {
+                aplicarFiltros();
             }
-            aplicarFiltros();
         });
 
+        JButton filtrar = Componentes.botaoPrimario("Filtrar");
+        filtrar.addActionListener(e -> aplicarFiltros());
+        campoDe.addActionListener(e -> aplicarFiltros());
+        campoAte.addActionListener(e -> aplicarFiltros());
         JButton limpar = Componentes.botaoSecundario("Limpar filtros");
-        limpar.addActionListener(e -> {
-            comboTipo.setSelectedIndex(0);
-            atualizarComboCategorias();
-            aplicarFiltros();
-        });
+        limpar.addActionListener(e -> limparFiltros());
 
-        filtros.add(rotuloEcampo("Tipo", comboTipo));
-        filtros.add(rotuloEcampo("Categoria", comboCategoria));
+        filtros.add(rotuloEcampo("TIPO", comboTipo));
+        filtros.add(rotuloEcampo("CATEGORIA", comboCategoria));
+        filtros.add(rotuloEcampo("DE (dd/mm/aaaa)", campoDe));
+        filtros.add(rotuloEcampo("ATÉ (dd/mm/aaaa)", campoAte));
+        filtros.add(filtrar);
         filtros.add(limpar);
 
-        JPanel painelTabela = Componentes.cartao();
-        painelTabela.setLayout(new BorderLayout());
+        // Tabela
+        tabela.getColumnModel().getColumn(4).setCellRenderer(new ValorCellRenderer());
+        tabela.getColumnModel().getColumn(0).setPreferredWidth(90);
+        tabela.getColumnModel().getColumn(1).setPreferredWidth(70);
+        tabela.getColumnModel().getColumn(3).setPreferredWidth(280);
+        tabela.getSelectionModel().addListSelectionListener(e -> atualizarBotoes());
+        tabela.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    editarSelecionada();
+                }
+            }
+        });
 
-        JTable tabela = new JTable(modeloTabela);
-        tabela.setRowHeight(30);
-        tabela.setFont(UIConstants.FONT_BODY);
-        tabela.getTableHeader().setFont(UIConstants.FONT_LABEL);
-        tabela.setShowGrid(false);
-        tabela.setFillsViewportHeight(true);
+        botaoEditar.addActionListener(e -> editarSelecionada());
+        botaoExcluir.addActionListener(e -> excluirSelecionada());
+        JButton exportar = Componentes.botaoSecundario("Exportar CSV");
+        exportar.addActionListener(e -> exportarCsv());
 
-        labelTotal.setFont(UIConstants.FONT_H2);
+        JPanel acoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        acoes.setOpaque(false);
+        acoes.add(botaoEditar);
+        acoes.add(botaoExcluir);
+        acoes.add(exportar);
+
+        labelTotal.setFont(UIConstants.FONT_BODY_BOLD);
         labelTotal.setForeground(UIConstants.TEXT);
-        JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        rodape.setOpaque(false);
-        rodape.add(labelTotal);
 
-        painelTabela.add(new JScrollPane(tabela), BorderLayout.CENTER);
-        painelTabela.add(rodape, BorderLayout.SOUTH);
+        JPanel rodape = new JPanel(new BorderLayout());
+        rodape.setOpaque(false);
+        rodape.setBorder(new EmptyBorder(10, 0, 0, 0));
+        labelTotal.setBorder(new EmptyBorder(10, 10, 0, 0));
+        rodape.add(acoes, BorderLayout.NORTH);
+        rodape.add(labelTotal, BorderLayout.SOUTH);
+
+        JPanel cartaoTabela = Componentes.cartao();
+        cartaoTabela.setLayout(new BorderLayout());
+        JScrollPane scroll = new JScrollPane(tabela);
+        scroll.setBorder(null);
+        cartaoTabela.add(scroll, BorderLayout.CENTER);
+        cartaoTabela.add(rodape, BorderLayout.SOUTH);
 
         JPanel topo = new JPanel(new BorderLayout());
         topo.setOpaque(false);
@@ -112,14 +166,15 @@ public class ExtratoPanel extends JPanel {
         topo.add(filtros, BorderLayout.SOUTH);
 
         add(topo, BorderLayout.NORTH);
-        add(painelTabela, BorderLayout.CENTER);
+        add(cartaoTabela, BorderLayout.CENTER);
+        atualizarBotoes();
     }
 
     private JPanel rotuloEcampo(String rotulo, JComponent campo) {
         JPanel p = new JPanel();
         p.setOpaque(false);
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        JLabel l = Componentes.rotulo(rotulo);
+        JLabel l = Componentes.rotuloPara(rotulo, campo);
         l.setAlignmentX(Component.LEFT_ALIGNMENT);
         campo.setAlignmentX(Component.LEFT_ALIGNMENT);
         p.add(l);
@@ -128,89 +183,166 @@ public class ExtratoPanel extends JPanel {
         return p;
     }
 
-    private void atualizarComboCategorias() {
+    /** Chamado sempre que a tela é exibida. */
+    public void atualizar() {
+        carregarCategorias();
+        aplicarFiltros();
+    }
+
+    private TipoFluxo tipoSelecionado() {
+        Object s = comboTipo.getSelectedItem();
+        return s instanceof TipoFluxo ? (TipoFluxo) s : null;
+    }
+
+    private void carregarCategorias() {
         atualizandoCombos = true;
         try {
-            Object selecionadoAnterior = comboCategoria.getSelectedItem();
+            Object anterior = comboCategoria.getSelectedItem();
             comboCategoria.removeAllItems();
             comboCategoria.addItem("Todas");
-
-            TipoFluxo tipo = tipoFiltroSelecionado();
-            List<Categoria> categorias = (tipo == null)
-                    ? dados.listarCategorias()
-                    : dados.listarCategoriasPorTipo(tipo);
+            TipoFluxo tipo = tipoSelecionado();
+            List<Categoria> categorias = tipo == null ? categoriaService.listar() : categoriaService.listarPorTipo(tipo);
             for (Categoria c : categorias) {
                 comboCategoria.addItem(c);
             }
-            if (selecionadoAnterior instanceof Categoria && categorias.contains(selecionadoAnterior)) {
-                comboCategoria.setSelectedItem(selecionadoAnterior);
+            if (anterior instanceof Categoria && categorias.contains(anterior)) {
+                comboCategoria.setSelectedItem(anterior);
             } else {
                 comboCategoria.setSelectedIndex(0);
             }
+        } catch (AppException e) {
+            Mensagens.erro(this, e.getMessage());
         } finally {
             atualizandoCombos = false;
         }
     }
 
-    private TipoFluxo tipoFiltroSelecionado() {
-        String selecionado = (String) comboTipo.getSelectedItem();
-        if ("Entrada".equals(selecionado)) {
-            return TipoFluxo.ENTRADA;
-        }
-        if ("Saída".equals(selecionado)) {
-            return TipoFluxo.SAIDA;
-        }
-        return null;
+    private void limparFiltros() {
+        atualizandoCombos = true;
+        comboTipo.setSelectedIndex(0);
+        campoDe.setText("");
+        campoAte.setText("");
+        atualizandoCombos = false;
+        carregarCategorias();
+        aplicarFiltros();
     }
 
     private void aplicarFiltros() {
-        Usuario usuario = dados.getUsuarioLogado();
-        if (usuario == null) {
+        try {
+            FiltroMovimentacao filtro = movimentacaoService.novoFiltro()
+                    .tipo(tipoSelecionado())
+                    .dataInicio(Formatador.lerDataOpcional(campoDe.getText()))
+                    .dataFim(Formatador.lerDataOpcional(campoAte.getText()));
+            Object cat = comboCategoria.getSelectedItem();
+            if (cat instanceof Categoria) {
+                filtro.idCategoria(((Categoria) cat).getIdCategoria());
+            }
+            listaAtual = movimentacaoService.listar(filtro);
+        } catch (AppException e) {
+            Mensagens.erro(this, e.getMessage());
             return;
         }
 
-        TipoFluxo tipoFiltro = tipoFiltroSelecionado();
-        Object categoriaSelecionada = comboCategoria.getSelectedItem();
-        Categoria categoriaFiltro = (categoriaSelecionada instanceof Categoria) ? (Categoria) categoriaSelecionada : null;
-
-        List<Movimentacao> movs = dados.listarMovimentacoes(usuario.getIdUsuario());
-
         modeloTabela.setRowCount(0);
-        double totalEntradas = 0;
-        double totalSaidas = 0;
-        for (Movimentacao m : movs) {
-            if (tipoFiltro != null && m.getCategoria().getTipoFluxo() != tipoFiltro) {
-                continue;
-            }
-            if (categoriaFiltro != null && m.getCategoria().getIdCategoria() != categoriaFiltro.getIdCategoria()) {
-                continue;
-            }
-            boolean entrada = m.getCategoria().getTipoFluxo() == TipoFluxo.ENTRADA;
-            String sinal = entrada ? "+ " : "- ";
+        BigDecimal entradas = BigDecimal.ZERO;
+        BigDecimal saidas = BigDecimal.ZERO;
+        for (Movimentacao m : listaAtual) {
             modeloTabela.addRow(new Object[]{
-                    m.getDataOperacao().format(FORMATO_BR),
+                    Formatador.data(m.getDataOperacao()),
+                    m.getCategoria().getTipoFluxo().getRotulo(),
                     m.getCategoria().getNomeCategoria(),
                     m.getDescricao(),
-                    sinal + formatarMoeda(m.getValor())
+                    (m.isEntrada() ? "+ " : "- ") + Formatador.moeda(m.getValor())
             });
-            if (entrada) {
-                totalEntradas += m.getValor();
+            if (m.isEntrada()) {
+                entradas = entradas.add(m.getValor());
             } else {
-                totalSaidas += m.getValor();
+                saidas = saidas.add(m.getValor());
             }
         }
-
-        labelTotal.setText(String.format("Entradas: %s    Saídas: %s    Saldo do período: %s",
-                formatarMoeda(totalEntradas), formatarMoeda(totalSaidas), formatarMoeda(totalEntradas - totalSaidas)));
+        labelTotal.setText("Entradas: " + Formatador.moeda(entradas) + "     Saídas: " + Formatador.moeda(saidas)
+                + "     Saldo: " + Formatador.moeda(entradas.subtract(saidas))
+                + "     (" + listaAtual.size() + " lançamento(s))");
+        atualizarBotoes();
     }
 
-    private String formatarMoeda(double valor) {
-        return String.format(Locale.of("pt", "BR"), "R$ %,.2f", valor);
+    private Movimentacao selecionada() {
+        int linha = tabela.getSelectedRow();
+        return linha >= 0 && linha < listaAtual.size() ? listaAtual.get(linha) : null;
     }
 
-    /** Chamado sempre que a tela é exibida. */
-    public void atualizar() {
-        atualizarComboCategorias();
+    private void atualizarBotoes() {
+        boolean temSelecao = selecionada() != null;
+        botaoEditar.setEnabled(temSelecao);
+        botaoExcluir.setEnabled(temSelecao);
+    }
+
+    private void editarSelecionada() {
+        Movimentacao m = selecionada();
+        if (m != null) {
+            principal.editarMovimentacao(m);
+        }
+    }
+
+    private void excluirSelecionada() {
+        Movimentacao m = selecionada();
+        if (m == null) {
+            return;
+        }
+        String resumo = Formatador.data(m.getDataOperacao()) + " — " + m.getDescricao()
+                + " (" + Formatador.moeda(m.getValor()) + ")";
+        if (!Mensagens.confirmar(this, "Excluir este lançamento?\n\n" + resumo + "\n\nEsta ação não pode ser desfeita.",
+                "Confirmar exclusão")) {
+            return;
+        }
+        try {
+            movimentacaoService.excluir(m.getIdMovimentacao());
+        } catch (AppException e) {
+            Mensagens.erro(this, e.getMessage());
+        }
         aplicarFiltros();
+    }
+
+    /** Exporta o que está na tabela (respeitando os filtros) em CSV com separador ";" para o Excel. */
+    private void exportarCsv() {
+        if (listaAtual.isEmpty()) {
+            Mensagens.info(this, "Não há lançamentos para exportar com os filtros atuais.");
+            return;
+        }
+        JFileChooser escolha = new JFileChooser();
+        escolha.setDialogTitle("Exportar extrato");
+        escolha.setFileFilter(new FileNameExtensionFilter("Arquivo CSV (*.csv)", "csv"));
+        escolha.setSelectedFile(new File("extrato_zcashflow_" + LocalDate.now() + ".csv"));
+        if (escolha.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        File arquivo = escolha.getSelectedFile();
+        if (!arquivo.getName().toLowerCase().endsWith(".csv")) {
+            arquivo = new File(arquivo.getParentFile(), arquivo.getName() + ".csv");
+        }
+        if (arquivo.exists() && !Mensagens.confirmar(this, "O arquivo já existe. Deseja substituí-lo?", "Substituir arquivo")) {
+            return;
+        }
+        try (Writer w = Files.newBufferedWriter(arquivo.toPath(), StandardCharsets.UTF_8)) {
+            w.write('\uFEFF'); // BOM: o Excel reconhece os acentos
+            w.write("Data;Tipo;Categoria;Descrição;Valor\r\n");
+            for (Movimentacao m : listaAtual) {
+                w.write(String.join(";",
+                        Formatador.data(m.getDataOperacao()),
+                        m.getCategoria().getTipoFluxo().getRotulo(),
+                        csv(m.getCategoria().getNomeCategoria()),
+                        csv(m.getDescricao()),
+                        Formatador.valorEditavel(m.getValorComSinal())));
+                w.write("\r\n");
+            }
+        } catch (IOException e) {
+            Mensagens.erro(this, "Não foi possível gravar o arquivo: " + e.getMessage());
+            return;
+        }
+        Mensagens.info(this, "Extrato exportado com sucesso:\n" + arquivo.getAbsolutePath());
+    }
+
+    private String csv(String texto) {
+        return "\"" + texto.replace("\"", "\"\"") + "\"";
     }
 }
